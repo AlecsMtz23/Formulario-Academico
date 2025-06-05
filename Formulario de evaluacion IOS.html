@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evaluación Académica del Alumno</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --primary: #4155d9;
+      --secondary: #0d7e27;
+      --accent: #c43d3d;
+      --light: #f8fafc;
+      --dark: #2d3748;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+      color: #333;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  overflow: visible; /* Cambiado de hidden a visible */
+}
+
+    header {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      padding: 18px 20px 12px;
+      text-align: center;
+    }
+
+    .school-name {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 3px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      margin-bottom: 5px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 8px;
+      font-weight: 300;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .student-info {
+      background-color: var(--light);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border: 1px solid var(--border);
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--dark);
+      font-size: 15px;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      transition: all 0.3s;
+      background: white;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(26, 75, 140, 0.2);
+    }
+
+    .questions-container {
+      margin-bottom: 25px;
+    }
+
+    .question-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .question-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--primary), var(--secondary));
+    }
+
+    .question-text {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--dark);
+      padding-left: 10px;
+      line-height: 1.5;
+    }
+
+.options-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.option {
+  flex: 1 1 180px;
+  min-width: 180px;
+  background: var(--light);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+    .option:hover {
+      background: #e9ecef;
+    }
+
+    .option.selected {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 14px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 200px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #143a70;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-accent:hover {
+      background: #a83232;
+    }
+
+    .btn:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 10px;
+      padding: 25px;
+      margin-top: 25px;
+      border: 1px solid var(--border);
+      display: none;
+      position: relative;
+    }
+
+    .chart-container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+    }
+
+    .chart-title {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--dark);
+      font-size: 20px;
+      font-weight: 700;
+      position: relative;
+      padding-bottom: 12px;
+    }
+
+    .chart-title::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      border-radius: 3px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 300px;
+      margin: 0 auto;
+      max-width: 450px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #6c757d;
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      background: var(--light);
+    }
+
+    .summary {
+      margin-top: 25px;
+      padding: 18px;
+      background-color: #f0f7ff;
+      border-radius: 10px;
+      border-left: 4px solid var(--primary);
+    }
+
+    .summary p {
+      margin: 8px 0;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .summary strong {
+      color: var(--primary);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 6px;
+      margin-bottom: 5px;
+    }
+
+    .badge-excelente {
+      background: #2ecc71;
+      color: white;
+    }
+
+    .badge-buena {
+      background: #3498db;
+      color: white;
+    }
+
+    .badge-normal {
+      background: #f39c12;
+      color: white;
+    }
+
+    .badge-mejorable {
+      background: #e74c3c;
+      color: white;
+    }
+
+@media (max-width: 768px) {
+  .options-container {
+    flex-direction: column;
+  }
+  .option {
+    min-width: 100%;
+  }
+
+}
+      .buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .btn {
+        width: 100%;
+        max-width: 300px;
+        min-width: auto;
+      }
+
+      .chart-wrapper {
+        height: 250px;
+      }
+
+      header {
+        padding: 15px;
+      }
+
+      .school-name {
+        font-size: 0.85rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .subtitle {
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        border-radius: 10px;
+      }
+
+      .content {
+        padding: 15px;
+      }
+
+      .student-info {
+        padding: 15px;
+      }
+
+      .question-card {
+        padding: 15px 12px;
+      }
+
+      .question-text {
+        font-size: 15px;
+        padding-left: 8px;
+      }
+
+      .option {
+        padding: 12px;
+        font-size: 13px;
+      }
+
+      .btn {
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+
+      .chart-wrapper {
+        height: 220px;
+      }
+
+      .chart-container {
+        padding: 20px 15px;
+      }
+
+      .chart-title {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="school-name">Escuela: Rene Mascareñas Miranda</div>
+      <h1>Evaluación Académica del Estudiante</h1>
+      <p class="subtitle">Sistema de evaluación integral con generación de fichas descriptivas</p>
+    </header>
+
+    <div class="content">
+      <div class="student-info">
+        <div class="form-group">
+          <label for="studentName">Nombre del Estudiante:</label>
+          <input type="text" id="studentName" placeholder="Ingrese el nombre completo del estudiante" />
+        </div>
+        <div class="form-group">
+          <label for="groupSelect">Grupo Fase 3:</label>
+          <select id="groupSelect">
+            <option value="" disabled selected>Seleccione el grupo</option>
+            <option value="1-A">1-A</option>
+            <option value="1-B">1-B</option>
+            <option value="2-A">2-A</option>
+            <option value="2-B">2-B</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="teacherName">Nombre del Docente:</label>
+          <input type="text" id="teacherName" placeholder="Ingrese su nombre completo" />
+        </div>
+      </div>
+
+      <div class="questions-container" id="questionsContainer">
+        <!-- Las preguntas se generarán dinámicamente con JavaScript -->
+      </div>
+
+      <div class="buttons">
+        <button id="generateChart" class="btn btn-primary">
+          <i class="fas fa-chart-bar"></i> Generar Gráfico
+        </button>
+        <button id="downloadPdf" class="btn btn-accent" disabled>
+          <i class="fas fa-file-pdf"></i> Descargar Reporte PDF
+        </button>
+      </div>
+
+      <div class="chart-container" id="chartContainer">
+        <h2 class="chart-title">Resultados de la Evaluación Académica</h2>
+        <div class="chart-wrapper">
+          <canvas id="resultsChart"></canvas>
+        </div>
+        <div id="evaluationSummary" class="summary"></div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Sistema de Evaluación Académica 2025 | Hecho por Alejandro Martinez</p>
+    </footer>
+  </div>
+
+  <!-- Font Awesome para iconos -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <script>
+    // Preguntas largas (se muestran al usuario)
+    var preguntas = [
+      "1. Comprensión profunda de los conceptos teóricos presentados en clase, demostrando capacidad para relacionarlos con ejemplos prácticos.",
+      "2. Habilidad para resolver problemas complejos de manera autónoma, aplicando métodos y estrategias aprendidas durante el curso.",
+      "3. Participación activa en discusiones y actividades grupales, aportando ideas relevantes y fomentando un ambiente colaborativo.",
+      "4. Calidad y dedicación en la realización de trabajos y tareas asignadas, incluyendo presentación, contenido y cumplimiento de requisitos.",
+      "5. Capacidad de investigación autónoma, incluyendo la búsqueda de fuentes confiables, análisis crítico de información y elaboración de conclusiones.",
+      "6. Efectividad al trabajar en equipo, mostrando comunicación clara, respeto por las opiniones de los demás y contribución equitativa al proyecto.",
+      "7. Puntualidad y responsabilidad en la entrega de tareas, demostrando organización y cumplimiento de plazos establecidos.",
+      "8. Nivel de análisis crítico aplicado a casos de estudio, demostrando habilidad para identificar fortalezas, debilidades y proponer mejoras.",
+      "9. Calidad de la expresión oral en presentaciones, incluyendo claridad en el discurso, uso adecuado de recursos visuales y manejo del tiempo.",
+      "10. Creatividad y originalidad al desarrollar proyectos académicos, proponiendo ideas innovadoras y soluciones propias."
+    ];
+
+    // Etiquetas cortas para observaciones
+    var etiquetas = [
+      "comprensión de conceptos teóricos",
+      "resolución de problemas complejos",// 
+      "participación en clase",
+      "calidad de trabajos y tareas",
+      "capacidad de investigación",
+      "trabajo en equipo",
+      "puntualidad en entregas",
+      "análisis crítico de casos",
+      "expresión oral en presentaciones",
+      "creatividad en proyectos"
+    ];
+
+    // Lista de conectores variados
+    var conectores = [
+      "Además",
+      "Asimismo",
+      "Igualmente",
+      "Por otra parte",
+      "También"
+    ];
+
+    // Opciones de respuesta
+    var opciones = ["Excelente", "Buena", "Normal", "Mejorable"];
+
+    // Colores para cada opción
+    var colores = {
+      "Excelente": "#2ecc71",
+      "Buena": "#3498db",
+      "Normal": "#f39c12",
+      "Mejorable": "#e74c3c"
+    };
+
+    // Variable global para el gráfico
+    var resultChart = null;
+
+    // Al cargarse el DOM, generamos las preguntas y configuramos eventos
+    document.addEventListener("DOMContentLoaded", function () {
+      var container = document.getElementById("questionsContainer");
+
+      for (var i = 0; i < preguntas.length; i++) {
+        // Crear tarjeta de pregunta
+        var questionCard = document.createElement("div");
+        questionCard.className = "question-card";
+
+        // Texto de la pregunta
+        var preguntaTexto = document.createElement("div");
+        preguntaTexto.className = "question-text";
+        preguntaTexto.textContent = preguntas[i];
+        questionCard.appendChild(preguntaTexto);
+
+        // Contenedor de opciones
+        var opcionesDiv = document.createElement("div");
+        opcionesDiv.className = "options-container";
+
+        for (var j = 0; j < opciones.length; j++) {
+          var optionDiv = document.createElement("div");
+          optionDiv.className = "option";
+          optionDiv.setAttribute("data-question", i);
+          optionDiv.setAttribute("data-value", opciones[j]);
+          optionDiv.textContent = opciones[j];
+          opcionesDiv.appendChild(optionDiv);
+        }
+
+        questionCard.appendChild(opcionesDiv);
+        container.appendChild(questionCard);
+      }
+
+      // Configurar eventos de clic en cada opción
+      var todasOpciones = document.querySelectorAll(".option");
+      for (var k = 0; k < todasOpciones.length; k++) {
+        todasOpciones[k].addEventListener("click", function () {
+          var questionIndex = this.getAttribute("data-question");
+          // Deseleccionar otras opciones de la misma pregunta
+          var mismasOpciones = document.querySelectorAll(
+            '.option[data-question="' + questionIndex + '"]'
+          );
+          for (var m = 0; m < mismasOpciones.length; m++) {
+            mismasOpciones[m].classList.remove("selected");
+          }
+          // Seleccionar esta opción
+          this.classList.add("selected");
+        });
+      }
+
+      // Configurar botones
+      document
+        .getElementById("generateChart")
+        .addEventListener("click", generateChart);
+      document
+        .getElementById("downloadPdf")
+        .addEventListener("click", downloadPdf);
+    });
+
+    // Función para generar el gráfico y el resumen
+    function generateChart() {
+      var studentName =
+        document.getElementById("studentName").value || "Alumno";
+      var group = document.getElementById("groupSelect").value || "Grupo no especificado";
+      var teacherName =
+        document.getElementById("teacherName").value || "Docente no especificado";
+
+      // Validar que todas las preguntas estén respondidas
+      var allAnswered = true;
+      var responses = [];
+      for (var i = 0; i < preguntas.length; i++) {
+        var selectedOption = document.querySelector(
+          '.option.selected[data-question="' + i + '"]'
+        );
+        if (!selectedOption) {
+          allAnswered = false;
+          break;
+        }
+        responses.push(selectedOption.getAttribute("data-value"));
+      }
+
+      if (!allAnswered) {
+        alert("Por favor, responda todas las preguntas antes de generar el gráfico.");
+        return;
+      }
+
+      // Contar respuestas
+      var counts = { Excelente: 0, Buena: 0, Normal: 0, Mejorable: 0 };
+      for (var i = 0; i < responses.length; i++) {
+        counts[responses[i]]++;
+      }
+
+      // Calcular porcentajes
+      var percentages = {};
+      for (var key in counts) {
+        percentages[key] = ((counts[key] / preguntas.length) * 100).toFixed(1);
+      }
+
+      // Mostrar contenedor de gráfico
+      document.getElementById("chartContainer").style.display = "block";
+
+      // Crear/actualizar gráfico
+      var ctx = document.getElementById("resultsChart").getContext("2d");
+      if (resultChart) {
+        resultChart.destroy();
+      }
+
+      resultChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: Object.keys(counts),
+          datasets: [
+            {
+              data: Object.values(counts),
+              backgroundColor: [
+                colores["Excelente"],
+                colores["Buena"],
+                colores["Normal"],
+                colores["Mejorable"],
+              ],
+              borderColor: "#fff",
+              borderWidth: 3,
+              hoverOffset: 15,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "right",
+              labels: {
+                font: { size: 13 },
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: "circle",
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  var label = context.label || "";
+                  var value = context.raw || 0;
+                  var percentage = percentages[context.label] || 0;
+                  return label + ": " + value + " (" + percentage + "%)";
+                },
+              },
+              backgroundColor: "rgba(26, 75, 140, 0.9)",
+              padding: 10,
+              cornerRadius: 6,
+            },
+            title: {
+              display: true,
+              text: "Evaluación de " + studentName + " - " + group,
+              font: { size: 16, weight: "bold" },
+              padding: 15,
+            },
+          },
+          cutout: "55%",
+        },
+      });
+
+      // Generar resumen con observaciones
+      var summary = document.getElementById("evaluationSummary");
+      var observationsText = getObservationsPerQuestion(responses);
+      summary.innerHTML =
+        '<p><strong>Resumen de evaluación para ' +
+        studentName +
+        " (Grupo " +
+        group +
+        ")</strong></p>" +
+        "<p><strong>Docente:</strong> " +
+        teacherName +
+        "</p>" +
+        '<div style="margin: 12px 0; display: flex; flex-wrap: wrap;">' +
+        '<span class="badge badge-excelente">Excelente: ' +
+        counts["Excelente"] +
+        " áreas (" +
+        percentages["Excelente"] +
+        "%)</span>" +
+        '<span class="badge badge-buena">Buena: ' +
+        counts["Buena"] +
+        " áreas (" +
+        percentages["Buena"] +
+        "%)</span>" +
+        '<span class="badge badge-normal">Normal: ' +
+        counts["Normal"] +
+        " áreas (" +
+        percentages["Normal"] +
+        "%)</span>" +
+        '<span class="badge badge-mejorable">Mejorable: ' +
+        counts["Mejorable"] +
+        " áreas (" +
+        percentages["Mejorable"] +
+        "%)</span>" +
+        "</div>" +
+        "<p><strong>Observaciones:</strong></p>" +
+        "<p>" +
+        observationsText +
+        "</p>";
+
+      document.getElementById("downloadPdf").disabled = false;
+      document
+        .getElementById("chartContainer")
+        .scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Genera observaciones breves con conectores variados
+    function getObservationsPerQuestion(responses) {
+      var obsArray = [];
+      for (var idx = 0; idx < responses.length; idx++) {
+        var resp = responses[idx];
+        var etiqueta = etiquetas[idx];
+
+        if (idx === 0) {
+          if (resp === "Excelente") {
+            obsArray.push(
+              "En " + etiqueta + ", el estudiante mostró un desempeño excelente."
+            );
+          } else if (resp === "Buena") {
+            obsArray.push(
+              "En " + etiqueta + ", el rendimiento fue bueno, con detalles por mejorar."
+            );
+          } else if (resp === "Normal") {
+            obsArray.push(
+              "En " +
+                etiqueta +
+                ", el desempeño fue aceptable, pero necesita refuerzo."
+            );
+          } else {
+            obsArray.push(
+              "En " + etiqueta + ", se requiere mejorar significativamente."
+            );
+          }
+        } else {
+          var conector = conectores[(idx - 1) % conectores.length];
+          if (resp === "Excelente") {
+            obsArray.push(
+              conector + " en " + etiqueta + ", el estudiante mostró un desempeño excelente."
+            );
+          } else if (resp === "Buena") {
+            obsArray.push(
+              conector + " en " + etiqueta + ", el rendimiento fue bueno, con detalles por mejorar."
+            );
+          } else if (resp === "Normal") {
+            obsArray.push(
+              conector + " en " + etiqueta + ", el desempeño fue aceptable, pero necesita refuerzo."
+            );
+          } else {
+            obsArray.push(
+              conector + " en " + etiqueta + ", se requiere mejorar significativamente."
+            );
+          }
+        }
+      }
+      return obsArray.join(" ");
+    }
+
+    // Función para generar PDF
+    function downloadPdf() {
+      if (!resultChart) {
+        alert("Primero genera el gráfico");
+        return;
+      }
+
+      var pdf = new jspdf.jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        putOnlyUsedFonts: true,
+      });
+
+      var studentNamePDF =
+        document.getElementById("studentName").value || "Alumno";
+      var groupPDF =
+        document.getElementById("groupSelect").value || "Grupo no especificado";
+      var teacherNamePDF =
+        document.getElementById("teacherName").value || "Docente no especificado";
+
+      var margin = 15;
+      var maxWidth = pdf.internal.pageSize.getWidth() - margin * 2;
+      var pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Recalcular conteos
+      var respuestasSeleccionadas = [];
+      for (var i = 0; i < preguntas.length; i++) {
+        var sel = document.querySelector(
+          '.option.selected[data-question="' + i + '"]'
+        );
+        if (sel) respuestasSeleccionadas.push(sel.getAttribute("data-value"));
+      }
+      var countsPDF = { Excelente: 0, Buena: 0, Normal: 0, Mejorable: 0 };
+      for (var i = 0; i < respuestasSeleccionadas.length; i++) {
+        countsPDF[respuestasSeleccionadas[i]]++;
+      }
+      var percentagesPDF = {};
+      for (var key in countsPDF) {
+        percentagesPDF[key] = ((countsPDF[key] / preguntas.length) * 100).toFixed(
+          1
+        );
+      }
+
+      // Encabezado compacto
+      pdf.setFillColor(26, 75, 140);
+      pdf.rect(0, 0, pdf.internal.pageSize.getWidth(), 25, "F");
+
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("Escuela: Rene Mascareñas Miranda", margin, 12);
+
+      pdf.setFontSize(16);
+      pdf.text(
+        "Evaluación Académica",
+        pdf.internal.pageSize.getWidth() / 2,
+        18,
+        null,
+        null,
+        "center"
+      );
+
+      var cursorY = 35;
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Información del Alumno:", margin, cursorY);
+
+      cursorY += 6;
+      pdf.setFont("helvetica", "normal");
+      pdf.text("• Nombre: " + studentNamePDF, margin + 5, cursorY);
+      cursorY += 5;
+      pdf.text("• Grupo: " + groupPDF, margin + 5, cursorY);
+      cursorY += 5;
+      pdf.text("• Docente: " + teacherNamePDF, margin + 5, cursorY);
+      cursorY += 5;
+      pdf.text("• Fecha: " + new Date().toLocaleDateString(), margin + 5, cursorY);
+      cursorY += 10;
+
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Resumen de Resultados:", margin, cursorY);
+      cursorY += 6;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(46, 204, 113);
+      pdf.text(
+        "✓ Excelente: " +
+          countsPDF["Excelente"] +
+          " áreas (" +
+          percentagesPDF["Excelente"] +
+          "%)",
+        margin + 5,
+        cursorY
+      );
+      cursorY += 5;
+
+      pdf.setTextColor(52, 152, 219);
+      pdf.text(
+        "✓ Buena: " +
+          countsPDF["Buena"] +
+          " áreas (" +
+          percentagesPDF["Buena"] +
+          "%)",
+        margin + 5,
+        cursorY
+      );
+      cursorY += 5;
+
+      pdf.setTextColor(243, 156, 18);
+      pdf.text(
+        "✓ Normal: " +
+          countsPDF["Normal"] +
+          " áreas (" +
+          percentagesPDF["Normal"] +
+          "%)",
+        margin + 5,
+        cursorY
+      );
+      cursorY += 5;
+
+      pdf.setTextColor(231, 76, 60);
+      pdf.text(
+        "✓ Mejorable: " +
+          countsPDF["Mejorable"] +
+          " áreas (" +
+          percentagesPDF["Mejorable"] +
+          "%)",
+        margin + 5,
+        cursorY
+      );
+      cursorY += 10;
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("Observaciones:", margin, cursorY);
+      cursorY += 6;
+
+      var obsPDF = getObservationsPerQuestion(respuestasSeleccionadas);
+      var prefixedObs =
+        "El estudiante " + studentNamePDF + " ha demostrado: " + obsPDF;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      var lines = pdf.splitTextToSize(prefixedObs, maxWidth - 10);
+
+      for (var li = 0; li < lines.length; li++) {
+        if (cursorY > pageHeight - 60) break;
+        pdf.text(lines[li], margin + 5, cursorY);
+        cursorY += 4.5;
+      }
+      cursorY += 8;
+
+      html2canvas(document.getElementById("resultsChart"), {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      }).then(function (canvas) {
+        var imgData = canvas.toDataURL("image/png");
+        var imgProps = pdf.getImageProperties(imgData);
+        var imgRatio = imgProps.width / imgProps.height;
+
+        var imgWidth = maxWidth * 0.6;
+        var imgHeight = imgWidth / imgRatio;
+
+        var centerX = (pdf.internal.pageSize.getWidth() - imgWidth) / 2;
+
+        pdf.addImage(imgData, "PNG", centerX, cursorY, imgWidth, imgHeight);
+        cursorY += imgHeight + 10;
+
+        pdf.setFontSize(9);
+        pdf.setTextColor(100, 100, 100);
+
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(
+          margin,
+          pageHeight - 15,
+          pdf.internal.pageSize.getWidth() - margin,
+          pageHeight - 15
+        );
+
+        pdf.text(
+          "Evaluación Académica - " + new Date().toLocaleDateString(),
+          margin,
+          pageHeight - 10
+        );
+
+        var fileName =
+          "Evaluacion_" + studentNamePDF.replace(/\s+/g, "_") + ".pdf";
+        pdf.save(fileName);
+      });
+    }
+  </script>
+  <script>
+  // Polyfill para gap en flexbox (Safari <14.1)
+  (function() {
+    if (!('flexGap' in document.documentElement.style)) {
+      var _flex = document.querySelectorAll('.options-container');
+      for (var i = 0; i < _flex.length; i++) {
+        _flex[i].style.margin = '0 -6px';
+        _flex[i].style.width = 'calc(100% + 12px)';
+        
+        var options = _flex[i].querySelectorAll('.option');
+        for (var j = 0; j < options.length; j++) {
+          options[j].style.margin = '0 6px 12px';
+        }
+      }
+    }
+  })();
+</script>
+</body>
+</html>
